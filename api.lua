@@ -329,7 +329,7 @@ function dirtmons:register_mob(name, def)
 						end
 					end
 
-					if type == "player" or type == "badplayer" then
+					if type == "player" or type == "badp" then
 						local s = self.object:getpos()
 						local p = player:getpos()
 						local sp = s
@@ -353,7 +353,7 @@ function dirtmons:register_mob(name, def)
 				for _, oir in pairs(inradius) do
 					local obj = oir:get_luaentity()
 					if obj then
-						if obj.type == "badplayer" or obj.type == "barbarian" then
+						if obj.type == "badp" or obj.type == "barbarian" then
 							-- attack monster
 							local p = obj.object:getpos()
 							local dist = ((p.x-s.x)^2 + (p.y-s.y)^2 + (p.z-s.z)^2)^0.5
