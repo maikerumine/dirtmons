@@ -1,5 +1,5 @@
 dirtmons = {}
-dirtmons.mod = "redo"
+dirtmons.mod = "redo-redo"
 function dirtmons:register_mob(name, def)
 	minetest.register_entity(name, {
 		name = name,
@@ -23,11 +23,8 @@ function dirtmons:register_mob(name, def)
 		drops = def.drops,
 		armor = def.armor,
 		drawtype = def.drawtype,
-		on_rightclick = def.on_rightclick,
 		type = def.type,
 		attack_type = def.attack_type,
-		arrow = def.arrow,
-		shoot_interval = def.shoot_interval,
 		sounds = def.sounds,
 		animation = def.animation,
 		follow = def.follow,
@@ -46,9 +43,6 @@ function dirtmons:register_mob(name, def)
 		blood_amount = def.blood_amount or 5, -- 15
 		blood_texture = def.blood_texture or "mobs_blood.png",
 		rewards = def.rewards or nil,
-		animaltype = def.animaltype,
-		shoot_offset = def.shoot_offset or 0,
-
 		stimer = 0,
 		timer = 0,
 		env_damage_timer = 0, -- only if state = "attack"
@@ -57,7 +51,6 @@ function dirtmons:register_mob(name, def)
 		v_start = false,
 		old_y = nil,
 		lifetimer = 600,
-		tamed = false,
 		last_state = nil,
 		pause_timer = 0,
 
@@ -88,31 +81,6 @@ function dirtmons:register_mob(name, def)
 			local v = self.object:getvelocity()
 			return (v.x^2 + v.z^2)^(0.5)
 		end,
---[[
-		in_fov = function(self,pos)
-			-- checks if POS is in self's FOV
-			local yaw = self.object:getyaw()
-			if self.drawtype == "side" then
-				yaw = yaw+(math.pi/2)
-			end
-			local vx = math.sin(yaw)
-			local vz = math.cos(yaw)
-			local ds = math.sqrt(vx^2 + vz^2)
-			local ps = math.sqrt(pos.x^2 + pos.z^2)
-			local d = { x = vx / ds, z = vz / ds }
-			local p = { x = pos.x / ps, z = pos.z / ps }
-
-			local an = ( d.x * p.x ) + ( d.z * p.z )
-
-			a = math.deg( math.acos( an ) )
-
-			if a > ( self.fov / 2 ) then
-				return false
-			else
-				return true
-			end
-		end,
-]]
 		set_animation = function(self, type)
 			if not self.animation then
 				return
@@ -192,14 +160,7 @@ function dirtmons:register_mob(name, def)
 				end
 			end
 
-			-- drop egg
-			if self.animaltype == "clucky" then
-				if math.random(1, 1500) < 2
-				and minetest.get_node(self.object:getpos()).name == "air"
-				and self.state == "stand" then
-					minetest.set_node(self.object:getpos(), {name="mobs:egg"})
-				end
-			end
+
 
 			if self.object:getvelocity().y > 0.1 then
 				local yaw = self.object:getyaw()
@@ -541,12 +502,7 @@ function dirtmons:register_mob(name, def)
 						end
 					end
 				end
-			elseif self.state == "attack" and self.attack_type == "shoot" then
-				if not self.attack.player or not self.attack.player:is_player() then
-					self.state = "stand"
-					self:set_animation("stand")
-					return
-				end
+		else
 				local s = self.object:getpos()
 				local p = self.attack.player:getpos()
 				p.y = p.y - .5
@@ -576,26 +532,7 @@ function dirtmons:register_mob(name, def)
 				self.object:setyaw(yaw)
 				self.set_velocity(self, 0)
 
-				if self.timer > self.shoot_interval and math.random(1, 100) < 61 then
-					self.timer = 0
 
-					self:set_animation("punch")
-
-					if self.sounds and self.sounds.attack then
-						minetest.sound_play(self.sounds.attack, {object = self.object})
-					end
-
-					local p = self.object:getpos()
-					p.y = p.y + (self.collisionbox[2]+self.collisionbox[5])/2
-					local obj = minetest.add_entity(p, self.arrow)
-					local amount = (vec.x^2+vec.y^2+vec.z^2)^0.5
-					local v = obj:get_luaentity().velocity
-					vec.y = vec.y + self.shoot_offset -- was +1, this way shoot aim is accurate
-					vec.x = vec.x*v/amount
-					vec.y = vec.y*v/amount
-					vec.z = vec.z*v/amount
-					obj:setvelocity(vec)
-				end
 			end
 		end,
 
@@ -629,7 +566,7 @@ function dirtmons:register_mob(name, def)
 					self.object:set_properties(tmp.textures)
 				end]]
 			end
-			if self.lifetimer < 1 and not self.tamed and self.type ~= "npc" then
+			if self.lifetimer < 1 then
 				self.object:remove()
 			end
 		end,
@@ -665,49 +602,7 @@ function dirtmons:register_mob(name, def)
 --							object = self.object,
 --						})
 --					end
---					if minetest.get_modpath("skills") and minetest.get_modpath("experience") then
---						-- DROP experience
---						local distance_rating = ( ( get_distance({x=0,y=0,z=0},pos) ) / ( skills.get_player_level(hitter:get_player_name()).level * 1000 ) )
---						local emax = math.floor( self.exp_min + ( distance_rating * self.exp_max ) )
---						local expGained = math.random(self.exp_min, emax)
---						skills.add_exp(hitter:get_player_name(),expGained)
---						local expStack = experience.exp_to_items(expGained)
---						for _,stack in ipairs(expStack) do
---							default.drop_item(pos,stack)
---						end
---					end
 
---					-- see if there are any NPCs to shower you with rewards
---					if self.type ~= "npc" then
---						local inradius = minetest.get_objects_inside_radius(hitter:getpos(),10)
---						for _, oir in pairs(inradius) do
---							local obj = oir:get_luaentity()
---							if obj then
---								if obj.type == "npc" and obj.rewards ~= nil then
---									local yaw = nil
---									local lp = hitter:getpos()
---									local s = obj.object:getpos()
---									local vec = {x=lp.x-s.x, y=1, z=lp.z-s.z}
---									yaw = math.atan(vec.z/vec.x)+math.pi/2
---									if self.drawtype == "side" then
---										yaw = yaw+(math.pi/2)
---									end
---									if lp.x > s.x then
---										yaw = yaw+math.pi
---									end
---									obj.object:setyaw(yaw)
---									local x = math.sin(yaw) * -2
---									local z = math.cos(yaw) * 2
---									acc = {x=x, y=-5, z=z}
---									for _, r in pairs(obj.rewards) do
---										if math.random(0,100) < r.chance then
---											default.drop_item(obj.object:getpos(),r.item, vec, acc)
---										end
---									end
---								end
---							end
---						end
---					end
 
 				end
 			end
@@ -754,24 +649,7 @@ function dirtmons:register_mob(name, def)
 
 			self.object:setvelocity({x=dir.x*kb,y=ykb,z=dir.z*kb})
 			self.pause_timer = r
---[[
-			-- attack puncher and call other mobs for help
-			if self.passive == false then
-				if self.state ~= "attack" then
-					self.do_attack(self,hitter,1)
-				end
-				-- alert other NPCs to the attack
-				local inradius = minetest.get_objects_inside_radius(hitter:getpos(),5)
-				for _, oir in pairs(inradius) do
-					local obj = oir:get_luaentity()
-					if obj then
-						if obj.group_attack == true and obj.state ~= "attack" then
-							obj.do_attack(obj,hitter,1)
-						end
-					end
-				end
-			end
-]]--
+
 		end,
 
 	})
@@ -846,36 +724,7 @@ function dirtmons:register_spawn(name, nodes, max_light, min_light, chance, acti
 	})
 end
 
-function dirtmons:register_arrow(name, def)
-	minetest.register_entity(name, {
-		physical = false,
-		visual = def.visual,
-		visual_size = def.visual_size,
-		textures = def.textures,
-		velocity = def.velocity,
-		hit_player = def.hit_player,
-		hit_node = def.hit_node,
-		collisionbox = {0,0,0,0,0,0}, -- remove box around arrows
 
-		on_step = function(self, dtime)
-			local pos = self.object:getpos()
-			--if minetest.get_node(self.object:getpos()).name ~= "air" then
-			if minetest.registered_nodes[minetest.get_node(self.object:getpos()).name].walkable then
-				self.hit_node(self, pos, node)
-				self.object:remove()
-				return
-			end
-			-- pos.y = pos.y-1.0
-			for _,player in pairs(minetest.get_objects_inside_radius(pos, 1)) do
-				if player:is_player() then
-					self.hit_player(self, player)
-					self.object:remove()
-					return
-				end
-			end
-		end
-	})
-end
 
 function get_distance(pos1,pos2)
 	if ( pos1 ~= nil and pos2 ~= nil ) then
@@ -893,15 +742,6 @@ local weapon = player:get_wielded_item()
 		player:set_wielded_item(weapon)
 	end
 
---	if weapon:get_definition().sounds ~= nil then
---		local s = math.random(0,#weapon:get_definition().sounds)
---		minetest.sound_play(weapon:get_definition().sounds[s], {
---			object=player,
---		})
---	else
---		minetest.sound_play("default_sword_wood", {
---			object = player,
---		})
---	end
+
 end
 
