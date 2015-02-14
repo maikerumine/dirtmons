@@ -41,7 +41,7 @@ function dirtmons:register_mob(name, def)
 		knock_back = def.knock_back or 3,
 		blood_offset = def.blood_offset or 0,
 		blood_amount = def.blood_amount or 5, -- 15
-		blood_texture = def.blood_texture or "mobs_blood.png",
+		blood_texture = def.blood_texture or "default_dirt.png",
 		rewards = def.rewards or nil,
 		stimer = 0,
 		timer = 0,
