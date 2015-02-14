@@ -1,5 +1,5 @@
 dirtmons = {}
-dirtmons.mod = "redo-redo"
+dirtmons.mod = "Dirt monsters Aggressive"
 function dirtmons:register_mob(name, def)
 	minetest.register_entity(name, {
 		name = name,
@@ -29,8 +29,8 @@ function dirtmons:register_mob(name, def)
 		animation = def.animation,
 		follow = def.follow,
 		jump = def.jump or true,
-		exp_min = def.exp_min or 0,
-		exp_max = def.exp_max or 0,
+		--exp_min = def.exp_min or 0,
+		--xp_max = def.exp_max or 0,
 		walk_chance = def.walk_chance or 50,
 		attacks_monsters = def.attacks_monsters or false,
 		group_attack = def.group_attack or false,
@@ -397,6 +397,7 @@ function dirtmons:register_mob(name, def)
 							end
 						end
 					end
+					local yaw = 0
 					if lp ~= nil then
 						local vec = {x=lp.x-s.x, y=lp.y-s.y, z=lp.z-s.z}
 						yaw = math.atan(vec.z/vec.x)+math.pi/2
@@ -608,7 +609,7 @@ function dirtmons:register_mob(name, def)
 			end
 
 			--blood_particles
---[[
+
 			if self.blood_amount > 0 and pos then
 				local p = pos
 				p.y = p.y + self.blood_offset
@@ -630,7 +631,7 @@ function dirtmons:register_mob(name, def)
 					self.blood_texture --texture
 				)
 			end
-]]--
+
 			-- knock back effect, adapted from blockmen's pyramids mod
 			-- https://github.com/BlockMen/pyramids
 			local kb = self.knock_back
