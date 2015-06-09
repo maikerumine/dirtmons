@@ -1,10 +1,10 @@
 dirtmons = {}
-dirtmons.mod = "Dirt monsters Aggressive"
+dirtmons.mod = "dirtmons"
 function dirtmons:register_mob(name, def)
 	minetest.register_entity(name, {
 		name = name,
 		hp_min = def.hp_min or 5,
-		hp_max = def.hp_max,
+		hp_max = def.hp_max or 30,
 		physical = true,
 		collisionbox = def.collisionbox,
 		visual = def.visual,
@@ -29,8 +29,8 @@ function dirtmons:register_mob(name, def)
 		animation = def.animation,
 		follow = def.follow,
 		jump = def.jump or true,
-		--exp_min = def.exp_min or 0,
-		--xp_max = def.exp_max or 0,
+		exp_min = def.exp_min or 7,
+		exp_max = def.exp_max or 30,
 		walk_chance = def.walk_chance or 50,
 		attacks_monsters = def.attacks_monsters or false,
 		group_attack = def.group_attack or false,
@@ -41,7 +41,7 @@ function dirtmons:register_mob(name, def)
 		knock_back = def.knock_back or 3,
 		blood_offset = def.blood_offset or 0,
 		blood_amount = def.blood_amount or 5, -- 15
-		blood_texture = def.blood_texture or "default_dirt.png",
+		blood_texture = def.blood_texture or "mobs_blood.png",
 		rewards = def.rewards or nil,
 		stimer = 0,
 		timer = 0,
@@ -56,11 +56,11 @@ function dirtmons:register_mob(name, def)
 
 		do_attack = function(self, player, dist)
 			if self.state ~= "attack" then
---				if self.sounds.war_cry then
---					if math.random(0,100) < 90 then
---						minetest.sound_play(self.sounds.war_cry,{ object = self.object })
---					end
---				end
+				if self.sounds.war_cry then
+					if math.random(0,100) < 90 then
+						minetest.sound_play(self.sounds.war_cry,{ object = self.object })
+					end
+				end
 				self.state = "attack"
 				self.attack.player = player
 				self.attack.dist = dist
@@ -314,7 +314,7 @@ function dirtmons:register_mob(name, def)
 				for _, oir in pairs(inradius) do
 					local obj = oir:get_luaentity()
 					if obj then
-						if obj.type == "badp" or obj.type == "barbarian" then
+						if obj.type == "badp" or obj.type == "npc" then
 							-- attack monster
 							local p = obj.object:getpos()
 							local dist = ((p.x-s.x)^2 + (p.y-s.y)^2 + (p.z-s.z)^2)^0.5
@@ -397,7 +397,6 @@ function dirtmons:register_mob(name, def)
 							end
 						end
 					end
-					local yaw = 0
 					if lp ~= nil then
 						local vec = {x=lp.x-s.x, y=lp.y-s.y, z=lp.z-s.z}
 						yaw = math.atan(vec.z/vec.x)+math.pi/2
@@ -598,24 +597,24 @@ function dirtmons:register_mob(name, def)
 						end
 					end
 
---					if self.sounds.death ~= nil then
---						minetest.sound_play(self.sounds.death,{
---							object = self.object,
---						})
---					end
+					if self.sounds.death ~= nil then
+						minetest.sound_play(self.sounds.death,{
+							object = self.object,
+						})
+					end
 
 
 				end
 			end
 
 			--blood_particles
-
+--[[
 			if self.blood_amount > 0 and pos then
 				local p = pos
 				p.y = p.y + self.blood_offset
 
 				minetest.add_particlespawner(
-					5, --blood_amount, --amount
+					25, --blood_amount, --amount
 					0.25, --time
 					{x=p.x-0.2, y=p.y-0.2, z=p.z-0.2}, --minpos
 					{x=p.x+0.2, y=p.y+0.2, z=p.z+0.2}, --maxpos
@@ -631,7 +630,7 @@ function dirtmons:register_mob(name, def)
 					self.blood_texture --texture
 				)
 			end
-
+]]--
 			-- knock back effect, adapted from blockmen's pyramids mod
 			-- https://github.com/BlockMen/pyramids
 			local kb = self.knock_back
