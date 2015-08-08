@@ -1,10 +1,10 @@
 dirtmons = {}
-dirtmons.mod = "dirtmons"
+dirtmons.mod = "Dirt monsters Aggressive"
 function dirtmons:register_mob(name, def)
 	minetest.register_entity(name, {
 		name = name,
 		hp_min = def.hp_min or 5,
-		hp_max = def.hp_max or 30,
+		hp_max = def.hp_max,
 		physical = true,
 		collisionbox = def.collisionbox,
 		visual = def.visual,
@@ -29,8 +29,8 @@ function dirtmons:register_mob(name, def)
 		animation = def.animation,
 		follow = def.follow,
 		jump = def.jump or true,
-		exp_min = def.exp_min or 7,
-		exp_max = def.exp_max or 30,
+		--exp_min = def.exp_min or 0,
+		--xp_max = def.exp_max or 0,
 		walk_chance = def.walk_chance or 50,
 		attacks_monsters = def.attacks_monsters or false,
 		group_attack = def.group_attack or false,
@@ -41,7 +41,7 @@ function dirtmons:register_mob(name, def)
 		knock_back = def.knock_back or 3,
 		blood_offset = def.blood_offset or 0,
 		blood_amount = def.blood_amount or 5, -- 15
-		blood_texture = def.blood_texture or "mobs_blood.png",
+		blood_texture = def.blood_texture or "default_dirt.png",
 		rewards = def.rewards or nil,
 		stimer = 0,
 		timer = 0,
@@ -50,7 +50,7 @@ function dirtmons:register_mob(name, def)
 		state = "stand",
 		v_start = false,
 		old_y = nil,
-		lifetimer = 600,
+		lifetimer = 60,
 		last_state = nil,
 		pause_timer = 0,
 
@@ -273,7 +273,7 @@ function dirtmons:register_mob(name, def)
 			end
 
 			-- FIND SOMEONE TO ATTACK
-			if ( self.type == "monster" or self.type == "npc" ) and minetest.setting_getbool("enable_damage") and self.state ~= "attack" then
+			if ( self.type == "monster" or self.type == "badp" ) and minetest.setting_getbool("enable_damage") and self.state ~= "attack" then
 				local s = self.object:getpos()
 				local inradius = minetest.get_objects_inside_radius(s,self.view_range)
 				local player = nil
@@ -290,7 +290,7 @@ function dirtmons:register_mob(name, def)
 						end
 					end
 
-					if type == "player" or type == "badp" then
+					if type == "player" or type == "npc" then
 						local s = self.object:getpos()
 						local p = player:getpos()
 						local sp = s
@@ -314,7 +314,7 @@ function dirtmons:register_mob(name, def)
 				for _, oir in pairs(inradius) do
 					local obj = oir:get_luaentity()
 					if obj then
-						if obj.type == "badp" or obj.type == "npc" then
+						if obj.type == "npc" or obj.type == "barbarian" then
 							-- attack monster
 							local p = obj.object:getpos()
 							local dist = ((p.x-s.x)^2 + (p.y-s.y)^2 + (p.z-s.z)^2)^0.5
@@ -397,6 +397,7 @@ function dirtmons:register_mob(name, def)
 							end
 						end
 					end
+					local yaw = 0
 					if lp ~= nil then
 						local vec = {x=lp.x-s.x, y=lp.y-s.y, z=lp.z-s.z}
 						yaw = math.atan(vec.z/vec.x)+math.pi/2
@@ -552,7 +553,7 @@ function dirtmons:register_mob(name, def)
 				self.object:remove()
 			end
 			if self.type ~= "npc" then
-				self.lifetimer = 600 - dtime_s
+				self.lifetimer = 60 - dtime_s
 			end
 			if staticdata then
 				local tmp = minetest.deserialize(staticdata)
@@ -592,7 +593,7 @@ function dirtmons:register_mob(name, def)
 							local d = ItemStack(drop.name.." "..math.random(drop.min, drop.max))
 --							default.drop_item(pos,d)
 							local pos2 = pos
-							pos2.y = pos2.y + 0.5 -- drop items half block higher
+							pos2.y = pos2.y + 3.5 -- drop items half block higher
 							minetest.add_item(pos2,d)
 						end
 					end
@@ -608,13 +609,13 @@ function dirtmons:register_mob(name, def)
 			end
 
 			--blood_particles
---[[
+
 			if self.blood_amount > 0 and pos then
 				local p = pos
 				p.y = p.y + self.blood_offset
 
 				minetest.add_particlespawner(
-					25, --blood_amount, --amount
+					5, --blood_amount, --amount
 					0.25, --time
 					{x=p.x-0.2, y=p.y-0.2, z=p.z-0.2}, --minpos
 					{x=p.x+0.2, y=p.y+0.2, z=p.z+0.2}, --maxpos
@@ -630,7 +631,7 @@ function dirtmons:register_mob(name, def)
 					self.blood_texture --texture
 				)
 			end
-]]--
+
 			-- knock back effect, adapted from blockmen's pyramids mod
 			-- https://github.com/BlockMen/pyramids
 			local kb = self.knock_back
