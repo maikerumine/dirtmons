@@ -59,7 +59,7 @@ dirtmons:register_mob("dirtmons:dirt", {
 
 
 
-dirtmons:register_spawn("dirtmons:dirt2", {"default:dirt_with_grass","default:stone", "default:stonebrick","default:cobble"}, 7, 4, 7000, 5, -500)
+dirtmons:register_spawn("dirtmons:dirt2", {"default:dirt_with_grass","default:stone", "default:stonebrick","default:cobble"}, 7, 4, 7000, 5, -100)
 dirtmons:register_mob("dirtmons:dirt2", {
 	type = "monster",
 	hp_min = 30,
